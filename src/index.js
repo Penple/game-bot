@@ -78,7 +78,7 @@ client.on('ready', () => {
 
 client.on('message', async msg => {
   if (msg.content === '-link') {
-    msg.reply(`Please link your Steam account to your discord then visit https://discordapp.com/oauth2/authorize?client_id=333410385711464448&scope=identify%20connections&redirect_uri=${encodeURI(config.redirect_url)}&response_type=code`);
+    msg.reply(`Please link your Steam account to your discord then visit https://discordapp.com/oauth2/authorize?client_id=${config.client_id}&scope=identify%20connections&redirect_uri=${encodeURI(config.redirect_url)}&response_type=code`);
   } else if (msg.content === '-sync') {
     const response = (await rp({
       method: 'GET',
