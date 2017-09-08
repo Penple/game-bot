@@ -59,7 +59,7 @@ app.get('/callback', async function (req, res) {
   const guildRoles = guild.roles.array();
   const roles = [];
   for (game of response.games) {
-    const role = guild.roles.array().find(role => role.name === `🎮 ${game.name}`);
+    const role = guildRoles.find(role => role.name === `🎮 ${game.name}`);
     if (role && !member.roles.has(role.id)) {
       roles.push(role);
     }
@@ -68,7 +68,7 @@ app.get('/callback', async function (req, res) {
   res.send('Your Steam games have been synced to discord.');
 })
 
-app.listen(80, function () {
+app.listen(config.server_port, function () {
   console.log('Web listening!');
 })
 
@@ -105,39 +105,53 @@ client.on('message', async msg => {
     msg.reply("all game ranks have been removed, -sync to add them back.")
   } else if (msg.content == "-list") {
     const roleArray = msg.guild.roles.array().filter(role => role.name.startsWith("🎮 "));
+    const sortedRoles = roleArray.sort(function (a, b) {
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
+    })
     msg.reply("```Diff\n+Games:\n" + roleArray.map((role, index) => `- ${index + 1}) ${role.name.substring(3)}`).join("\n") + "```");
   } else if (msg.content.startsWith("-join ")) {
     const roleArray = msg.guild.roles.array().filter(role => role.name.startsWith("🎮 "));
+    const sortedRoles = roleArray.sort(function (a, b) {
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
+    })
     arg = msg.content.substring(6);
     if (isNaN(arg)) return msg.reply("please type the id of a role in -list.");
     const role = roleArray[arg - 1];
     if (!role) return msg.reply("please type the id of a role in -list.");
     if (msg.member.roles.has(role.id)) return msg.reply("you already have that role.");
-    msg.member.addRole(roleArray[arg - 1]);
+    msg.member.addRole(sortedRoles[arg - 1]);
     msg.reply(`given role \`${role.name}\`.`)
   } else if (msg.content.startsWith("-leave ")) {
     const roleArray = msg.guild.roles.array().filter(role => role.name.startsWith("🎮 "));
+    const sortedRoles = roleArray.sort(function (a, b) {
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
+    })
     arg = msg.content.substring(6);
     if (isNaN(arg)) return msg.reply("please type the id of a role in -list.");
-    const role = roleArray[arg - 1];
+    const role = sortedRoles[arg - 1];
     if (!role) return msg.reply("please type the id of a role in -list.");
     if (!msg.member.roles.has(role.id)) return msg.reply("you don't have that role.");
     msg.member.removeRole(role);
     msg.reply(`taken role \`${role.name}\`.`)
   } else if (msg.content === "-privacy") {
-    const roleArray = msg.guild.roles.array().filter(role => role.name.startsWith("🎮 "));
     arg = msg.content.substring(6);
     msg.reply(`this bot retrieves Steam profile data to sync steam roles to Discord. No data is stored long-term on the server.`)
   } else if (msg.content === "-help") {
     msg.reply("```" +
-              "-sync    Syncs your Steam games to Discord.\n" +
-              "-optout  Remove game roles\n" +
-              "-list    Lists all game roles\n" +
-              "-join    Join a game role in the list\n" +
-              "-leave   Leave a game role\n" +
-              "-addgame Add a steam game by ID\n" +
-              "-privacy Read the bot's privacy policy" +
-              "```");
+      "-sync    Syncs your Steam games to Discord.\n" +
+      "-optout  Remove game roles\n" +
+      "-list    Lists all game roles\n" +
+      "-join    Join a game role in the list\n" +
+      "-leave   Leave a game role\n" +
+      "-addgame Add a steam game by ID\n" +
+      "-privacy Read the bot's privacy policy" +
+      "```");
   }
 });
 
